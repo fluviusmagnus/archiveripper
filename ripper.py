@@ -83,6 +83,7 @@ def main():
         print('%d%% (%d/%d) done' % ((i + 1) / total * 100, i + 1, total))
 
     print('done')
+    client.return_book(id)
     sys.exit()
 
 if __name__ == '__main__':
