@@ -2,7 +2,7 @@
 # Copyright (c) 2020  James Shiffer
 # This file contains the main application logic.
 
-import argparse, api, logging, os, sys
+import argparse, api, logging, os, sys, random, time
 
 def main():
     client = api.ArchiveReaderClient()
@@ -79,9 +79,14 @@ def main():
         logging.debug('downloading page %d (index %d)' % (i + 1,
             i))
         contents = client.download_page(i, str(args.scale))
+
         open('%s/%d.jpg' % (dir, i + 1), 'wb').write(contents)
         print('%d%% (%d/%d) done' % ((i + 1) / total * 100, i + 1, total))
 
+        #wait a little between requests otherwise they'll block us
+        sleeptime=random.uniform(1,3)
+        time.sleep(sleeptime)
+        logging.debug('waiting %.1f sec between requests' % sleeptime)
     print('done')
     client.return_book(id)
     sys.exit()
