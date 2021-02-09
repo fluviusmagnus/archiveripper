@@ -16,6 +16,7 @@ def main():
     parser.add_argument('-p', '--password', help='Your archive.org account\'s password')
     parser.add_argument('-a', '--all-pages', action='store_true', help='Download every page of the book')
     parser.add_argument('-r', '--page-range', help='Download pages within a range (eg. 1-15)')
+    parser.add_argument('-R', '--redownload', action='store_true', help='Redownloads pages even if they\'re already on disk')
     parser.add_argument('-d', '--output-dir', help='Directory you want the pages to be written to. If undefined the directory will be named the book id')
     parser.add_argument('-s', '--scale', default=0, type=int, help='Image resolution of the pages requested, can save bandwidth if the best image quality isn\'t necessary. Higher integers mean smaller resolution, default is 0 (no downscaling)')
     args = parser.parse_args()
@@ -75,18 +76,28 @@ def main():
     logging.debug('planning on fetching pages %d thru %d' % (start, end))
 
     total = end - start
+
     for i in range(start, end):
-        logging.debug('downloading page %d (index %d)' % (i + 1,
-            i))
-        contents = client.download_page(i, str(args.scale))
+        savepath='%s/%d.jpg' % (dir, i + 1)
+        savepathnext='%s/%d.jpg' % (dir, i + 2)
+        logging.debug('downloading page %d (index %d)' % (i + 1, i))
 
-        open('%s/%d.jpg' % (dir, i + 1), 'wb').write(contents)
-        print('%d%% (%d/%d) done' % ((i + 1) / total * 100, i + 1, total))
 
-        #wait a little between requests otherwise they'll block us
-        sleeptime=random.uniform(1,3)
-        time.sleep(sleeptime)
-        logging.debug('waiting %.1f sec between requests' % sleeptime)
+        #download the last saved page even if exists because writing to file could've been interrupted
+        if (args.redownload or 
+                (not os.path.isfile(savepath) or 
+                    (os.path.isfile(savepath) and not os.path.isfile(savepathnext)))):
+            contents = client.download_page(i, str(args.scale))
+            open(savepath, 'wb').write(contents)
+            print('%d%% (%d/%d) done' % ((i + 1) / total * 100, i + 1, total))
+
+            #wait a little between requests otherwise they'll block us
+            sleeptime=random.uniform(1,3)
+            time.sleep(sleeptime)
+            logging.debug('waiting %.1f sec between requests' % sleeptime)
+        else:
+            print('%d%% (%d/%d) already on disk, skipping' % ((i + 1) / total * 100, i + 1, total))
+
     print('done')
     client.return_book(id)
     sys.exit()
