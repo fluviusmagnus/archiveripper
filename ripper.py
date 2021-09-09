@@ -87,7 +87,7 @@ def main():
             print('%d%% (%d/%d) done' % ((i + 1) / total * 100, i + 1, total))
 
             #wait a little between requests otherwise they'll block us
-            sleeptime=random.uniform(1,3)
+            sleeptime=random.uniform(2,5)
             time.sleep(sleeptime)
             logging.debug('waiting %.1f sec between requests' % sleeptime)
         else:
